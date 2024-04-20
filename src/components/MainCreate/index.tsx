@@ -1,4 +1,5 @@
-// @ts-nocheck 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 
 import { useContext, useRef, useState } from 'react'
 import { Checked, Unchecked } from '../../assets/icons/utils/CheckStatus'
@@ -7,7 +8,7 @@ import NewInstance from '../NewInstance'
 import { ImageSelected } from '../NewInstance/styles'
 import imagejs from 'image-js'
 
-import { 
+import {
   Main,
   PageTitle,
   Form,
@@ -20,7 +21,7 @@ import {
   Container,
   Submit,
   ProgressBar,
-  Error
+  Error,
 } from './styled'
 
 interface InputType {
@@ -33,7 +34,7 @@ const TextInput = ({ title, onChange, name }: InputType) => {
   return (
     <InputField>
       <Label>{title}</Label>
-      <Input onChange={onChange} name={name} type="text"/>
+      <Input onChange={onChange} name={name} type="text" />
     </InputField>
   )
 }
@@ -43,90 +44,120 @@ const CheckInput = ({ title, onChange, name }: InputType) => {
 
   return (
     <InputField type="checkbox">
-      <Label htmlFor={name}>{title}{ input[name] ? <Checked/> : <Unchecked/> }</Label>
-      <Input onChange={onChange} name={name} id={name} type="checkbox"/>
+      <Label htmlFor={name}>
+        {title}
+        {input[name] ? <Checked /> : <Unchecked />}
+      </Label>
+      <Input onChange={onChange} name={name} id={name} type="checkbox" />
     </InputField>
   )
 }
 
 const requiredFields = [
   {
-    field: "quizName",
+    field: 'quizName',
     minLength: 1,
-    type: 'string'
+    type: 'string',
   },
   {
-    field: "author",
+    field: 'author',
     minLength: 1,
-    type: 'string'
+    type: 'string',
   },
   {
-    field: "mainImage",
-    type: 'blob'
+    field: 'mainImage',
+    type: 'blob',
   },
 ]
 
 const requiredQuiz = [
   {
-    field: "cardTitle",
+    field: 'cardTitle',
     minLength: 1,
-    type: 'string'
+    type: 'string',
   },
   {
-    field: "variations",
+    field: 'variations',
     minLength: 1,
-    type: 'string'
+    type: 'string',
   },
   {
-    field: "audioBlob",
-    type: 'blob'
+    field: 'audioBlob',
+    type: 'blob',
   },
   {
-    field: "imageBlob",
-    type: 'blob'
+    field: 'imageBlob',
+    type: 'blob',
   },
 ]
 
 const MainCreate = () => {
-  const { input, setInput, setMainImage, createInstance, uploadProgress, setLogger, logger } = useContext(CreationContext)
+  const {
+    input,
+    setInput,
+    setMainImage,
+    createInstance,
+    uploadProgress,
+    setLogger,
+    logger,
+  } = useContext(CreationContext)
   const imageFileRef = useRef(null)
   const [imageLoaded, setImageLoad] = useState<boolean>(false)
 
   const addInstance = () => {
-    setInput({...input, quizItems: [...input.quizItems, { ytProgress: 0, cardTitle: '', variations: '', audioBlob: null, imageBlob: null }]})
+    setInput({
+      ...input,
+      quizItems: [
+        ...input.quizItems,
+        {
+          ytProgress: 0,
+          cardTitle: '',
+          variations: '',
+          audioBlob: null,
+          imageBlob: null,
+        },
+      ],
+    })
   }
 
-  const handleTextInput = ({ target: { name, value } }) => setInput({...input, [name]: value})
+  const handleTextInput = ({ target: { name, value } }) =>
+    setInput({ ...input, [name]: value })
 
   const submitQuiz = (e) => {
     e.preventDefault()
 
-    const validMain = requiredFields.every(({ field, minLength, type }, index) => {
-      if(!input[field]) {
-        setLogger(`[${index + 1}] Campo "${field}" não preenchido`)
-        return false
-      }
-
-      return true
-    })
-
-    const validQuiz = !!input.quizItems.length && input.quizItems.every((item) => {
-      if(!item) return false
-
-      const validItem = requiredQuiz.every((({ field, minLength, type }, index) => {
-        if(!item[field]) {
+    const validMain = requiredFields.every(
+      ({ field, minLength, type }, index) => {
+        if (!input[field]) {
           setLogger(`[${index + 1}] Campo "${field}" não preenchido`)
           return false
         }
 
         return true
-      }))
+      }
+    )
 
-      return validItem
-    })
+    const validQuiz =
+      !!input.quizItems.length &&
+      input.quizItems.every((item) => {
+        if (!item) return false
 
-    if(validQuiz && validMain){
-      setLogger("")
+        const validItem = requiredQuiz.every(
+          ({ field, minLength, type }, index) => {
+            if (!item[field]) {
+              setLogger(`[${index + 1}] Campo "${field}" não preenchido`)
+              return false
+            }
+
+            return true
+          }
+        )
+
+        return validItem
+      })
+
+    if (validQuiz && validMain) {
+      setLogger('')
       createInstance()
     }
   }
@@ -139,12 +170,12 @@ const MainCreate = () => {
 
     fr.readAsArrayBuffer(file)
 
-    fr.onload = async function() {
+    fr.onload = async function () {
       const imageLoad = await imagejs.load(fr.result)
       const resized = imageLoad.resize({ width: 300 })
       const imageString = resized.toDataURL()
-      const dataFetch = await fetch(imageString).then(res => res.blob())
-      const url = URL.createObjectURL(dataFetch);
+      const dataFetch = await fetch(imageString).then((res) => res.blob())
+      const url = URL.createObjectURL(dataFetch)
 
       setImageLoad(true)
       setMainImage(dataFetch)
@@ -152,36 +183,66 @@ const MainCreate = () => {
     }
   }
 
-  const handleCheck = ({ target: { checked, name } }) => setInput({...input, [name]: checked})
-
+  const handleCheck = ({ target: { checked, name } }) =>
+    setInput({ ...input, [name]: checked })
 
   return (
     <Main>
-      <PageTitle>Crie seu <br/>Quiz</PageTitle>
+      <PageTitle>
+        Crie seu <br />
+        Quiz
+      </PageTitle>
       <Form>
-        <TextInput onChange={handleTextInput} name="quizName" title="Nome do Quiz"/>
-        <TextInput onChange={handleTextInput} name="quizDescription" title="Descrição do Quiz (Opcional)"/>
+        <TextInput
+          onChange={handleTextInput}
+          name="quizName"
+          title="Nome do Quiz"
+        />
+        <TextInput
+          onChange={handleTextInput}
+          name="quizDescription"
+          title="Descrição do Quiz (Opcional)"
+        />
         <Flex>
           <InputField>
             <Label>Imagem de Capa</Label>
             <UploadArea>
-              <ImageSelected style={{ display: imageLoaded ? "block" : "none" }} ref={imageFileRef}/>
+              <ImageSelected
+                style={{ display: imageLoaded ? 'block' : 'none' }}
+                ref={imageFileRef}
+              />
               <SVGItem viewBox="0 0 24 24">
                 <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
               </SVGItem>
-              <Input onChange={handleImageUpload} accept="image/png, image/jpeg" type="file"/>
+              <Input
+                onChange={handleImageUpload}
+                accept="image/png, image/jpeg"
+                type="file"
+              />
             </UploadArea>
           </InputField>
           <Container>
-            <TextInput onChange={handleTextInput} name="author" title="Nome do Autor"/> 
-            <TextInput onChange={handleTextInput} name="authorHandle" title="Twitter do Autor (ex: @username) (Opcional)"/>
-            <CheckInput onChange={handleCheck} name="dmcaNotice" title="Contem musica licenciada (DMCA)"/>
+            <TextInput
+              onChange={handleTextInput}
+              name="author"
+              title="Nome do Autor"
+            />
+            <TextInput
+              onChange={handleTextInput}
+              name="authorHandle"
+              title="Twitter do Autor (ex: @username) (Opcional)"
+            />
+            <CheckInput
+              onChange={handleCheck}
+              name="dmcaNotice"
+              title="Contem musica licenciada (DMCA)"
+            />
           </Container>
         </Flex>
         <Label style={{ marginTop: 50 }}>Lista de Musicas</Label>
-        {
-          input.quizItems.map((_, index) => <NewInstance index={index} key={index}/>)
-        }
+        {input.quizItems.map((_, index) => (
+          <NewInstance index={index} key={index} />
+        ))}
         <UploadArea onClick={addInstance} large={true}>
           <SVGItem viewBox="0 0 24 24">
             <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
@@ -189,9 +250,9 @@ const MainCreate = () => {
         </UploadArea>
       </Form>
       {logger ? <Error>{logger}</Error> : null}
-      <Submit onClick={submitQuiz} type='submit'>
+      <Submit onClick={submitQuiz} type="submit">
         Enviar Quiz
-        <ProgressBar barWidth={(uploadProgress[0] / uploadProgress[1]) * 100}/>
+        <ProgressBar barWidth={(uploadProgress[0] / uploadProgress[1]) * 100} />
       </Submit>
     </Main>
   )

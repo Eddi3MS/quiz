@@ -1,5 +1,6 @@
-import { io } from 'socket.io-client';
+import { io } from 'socket.io-client'
 
-const URL = process.env.NODE_ENV === 'production' ? "https://tsunapop-0add06afd0c3.herokuapp.com/" : "https://tsunapop-0add06afd0c3.herokuapp.com/"
+const URL = import.meta.env.VITE_API
 
-export const socket = io(URL as string);
+export const socket = io(URL as string)
+

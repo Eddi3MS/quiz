@@ -1,4 +1,5 @@
-import styled from "styled-components"
+import styled from 'styled-components'
+import { Link } from 'react-router-dom'
 
 export const MainHeader = styled.header`
   width: 100%;
@@ -11,13 +12,13 @@ export const MainHeader = styled.header`
   margin-bottom: 50px;
 `
 
-export const Anchor = styled.a`
+export const Anchor = styled(Link)`
   font-size: 16px;
   color: #fff;
   text-decoration: none;
   margin-left: 32px;
 
-  &:hover{
+  &:hover {
     text-decoration: underline;
   }
 `

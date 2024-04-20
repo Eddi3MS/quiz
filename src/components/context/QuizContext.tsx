@@ -1,4 +1,5 @@
-// @ts-nocheck 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { createContext, Dispatch, useState } from 'react'
 
 interface CreationTypes {
@@ -14,13 +15,13 @@ const QuizProvider: React.FC<Props> = ({ children }) => {
   return (
     <QuizContext.Provider
       value={{
-        volume, setVolume
+        volume,
+        setVolume,
       }}
     >
       {children}
     </QuizContext.Provider>
   )
 }
-
 
 export default QuizProvider

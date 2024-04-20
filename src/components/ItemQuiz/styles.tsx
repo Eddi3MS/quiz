@@ -1,11 +1,12 @@
-import styled from "styled-components"
+import styled from 'styled-components'
 
-export const ItemWrapper = styled.a`
+export const ItemWrapper = styled.div`
   display: flex;
   height: 200px;
   border-radius: 6px;
   overflow: hidden;
   text-decoration: none;
+  cursor: pointer;
 `
 export const CoverImage = styled.img`
   min-width: 140px;
@@ -29,12 +30,12 @@ export const Title = styled.h2`
   justify-content: space-between;
   align-items: center;
 
-  svg{
+  svg {
     width: 28px;
     height: 28px;
     margin-left: 12px;
 
-    path{
+    path {
       fill: #a50e4f;
     }
   }
@@ -46,10 +47,10 @@ export const Author = styled.p`
   color: #212121;
 `
 
-export const Link = styled.a<{ href: string }>`
+export const Twitter = styled.a<{ href: string | undefined }>`
   margin: 0px;
   font-size: 18px;
-  color: ${({ href }) => href ? "#657bcc" : '#212121'};
+  color: ${({ href }) => (href ? '#657bcc' : '#212121')};
 `
 
 export const Description = styled.p`
@@ -57,3 +58,4 @@ export const Description = styled.p`
   font-size: 16px;
   color: #212121;
 `
+

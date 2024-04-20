@@ -1,43 +1,55 @@
-// @ts-nocheck 
-
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-
-import Main from './components/Main'
-import MainCreate from './components/MainCreate'
-
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import CreationProvider from './components/context/CreationContext'
+import QuizProvider from './components/context/QuizContext'
+import Loader from './components/Loader'
+import RootLayout from './Layouts/RootLayout'
 import './main.css'
-import CreationProvider from './components/context/CreationContext';
-import Header from './components/Header';
-import QuizList from './components/QuizList';
-import QuizProvider from './components/context/QuizContext';
+const MainCreate = lazy(() => import('./components/MainCreate'))
+const Main = lazy(() => import('./components/Main'))
+const QuizList = lazy(() => import('./components/QuizList'))
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <QuizList/>,
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        path: '/',
+        element: (
+          <Suspense fallback={<Loader />}>
+            <QuizList />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/create',
+        element: (
+          <Suspense fallback={<Loader />}>
+            <CreationProvider>
+              <MainCreate />
+            </CreationProvider>
+          </Suspense>
+        ),
+      },
+      {
+        path: '/quiz/:id',
+        element: (
+          <Suspense fallback={<Loader />}>
+            <QuizProvider>
+              <Main />
+            </QuizProvider>
+          </Suspense>
+        ),
+      },
+    ],
   },
-  {
-    path: "/create",
-    element: (
-      <CreationProvider>
-        <MainCreate/>
-      </CreationProvider>
-    ),
-  },
-  {
-    path: "/quiz/:id",
-    element: <QuizProvider><Main/></QuizProvider>,
-  },
-]);
+])
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <Header/>
     <RouterProvider router={router} />
-  </React.StrictMode>,
+  </React.StrictMode>
 )
+

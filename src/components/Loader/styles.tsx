@@ -1,4 +1,4 @@
-import styled, { keyframes } from "styled-components"
+import styled, { keyframes } from 'styled-components'
 
 const spin = keyframes`
    0% {
@@ -8,7 +8,7 @@ const spin = keyframes`
    60%, 100% {
       transform: rotate(360deg) translateY(-200%);
    }
-`;
+`
 
 export const SpinnerElement = styled.div`
   position: absolute;
@@ -16,7 +16,7 @@ export const SpinnerElement = styled.div`
   width: 15.7px;
   height: 15.7px;
 
-  div{
+  div {
     width: 100%;
     height: 100%;
     background-color: #ffffff;
@@ -30,22 +30,23 @@ export const SpinnerElement = styled.div`
 
     &:nth-child(2) {
       animation-delay: 0.3s;
-      background-color: rgba(255, 255, 255,0.8);
+      background-color: rgba(255, 255, 255, 0.8);
     }
 
     &:nth-child(3) {
       animation-delay: 0.45s;
-      background-color: rgba(255, 255, 255,0.7);
+      background-color: rgba(255, 255, 255, 0.7);
     }
 
     &:nth-child(4) {
       animation-delay: 0.6s;
-      background-color: rgba(255, 255, 255,0.6);
+      background-color: rgba(255, 255, 255, 0.6);
     }
 
     &:nth-child(5) {
       animation-delay: 0.75s;
-      background-color: rgba(255, 255, 255,0.5);
+      background-color: rgba(255, 255, 255, 0.5);
     }
   }
 `
+
