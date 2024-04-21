@@ -1,13 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
+import { onValue, orderByValue, ref } from 'firebase/database'
 import { useEffect, useState } from 'react'
-import { ref, onValue, orderByValue } from 'firebase/database'
-import { ref as storageRef, getDownloadURL } from 'firebase/storage'
-import { Grid, MainWrapper } from './styles'
+import { database } from '../../config/firebase'
+import { assetsUrl } from '../../utils/assetsUrl'
 import ItemQuiz from '../ItemQuiz'
 import Loader from '../Loader'
-import { database, storage } from '../../config/firebase'
+import { Grid, MainWrapper } from './styles'
 
 const QuizList = () => {
   const [loading, setLoading] = useState(true)
@@ -16,41 +16,22 @@ const QuizList = () => {
   useEffect(() => {
     const quizRef = ref(database, `quiz`, orderByValue('createdAt'))
 
-    console.log(quizRef)
-
     onValue(quizRef, async (snapshot) => {
       try {
         const data = snapshot.val()
 
-        const dataArray = Object.keys(data).map(async (key) => {
-          const cache = JSON.parse(
-            window.localStorage.getItem('imageCache') || `{}`
-          )
+        if (!data) {
+          throw new Error('Nenhum quiz cadastrado')
+        }
 
-          if (cache[`${data[key].id}_cover`])
-            return {
-              ...data[key],
-              cardBackground: cache[`${data[key].id}_cover`],
-            }
-
-          const cardRef = storageRef(
-            storage,
-            `gs://${import.meta.env.VITE_STORAGE_BUCKET}/cover/${
-              data[key].id
-            }_cover`
-          )
-          const cardUrl = await getDownloadURL(cardRef)
-
-          cache[`${data[key].id}_cover`] = cardUrl
-          window.localStorage.setItem('imageCache', JSON.stringify(cache))
+        const list = Object.keys(data).map((quizId) => {
+          const cardBackground = assetsUrl(`cover/${quizId}_cover`)
 
           return {
-            ...data[key],
-            cardBackground: cardUrl,
+            ...data[quizId],
+            cardBackground,
           }
         })
-
-        const list = await Promise.all(dataArray)
 
         setQuizList(
           list.sort(
@@ -64,7 +45,6 @@ const QuizList = () => {
       }
     })
   }, [])
-  console.log(quizList)
 
   return (
     <MainWrapper>

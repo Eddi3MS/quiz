@@ -2,10 +2,9 @@
 // @ts-nocheck
 
 import { onValue, ref } from 'firebase/database'
-import { getDownloadURL, ref as storageRef } from 'firebase/storage'
 import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { database, storage } from '../../config/firebase'
+import { database } from '../../config/firebase'
 import ItemGuess from '../ItemGuess'
 import Loader from '../Loader'
 import { QuizContext } from '../context/QuizContext'
@@ -18,6 +17,7 @@ import {
   Main as MainWrapper,
   Title,
 } from './styles'
+import { assetsUrl } from '../../utils/assetsUrl'
 
 const Main = () => {
   const { setVolume, volume } = useContext(QuizContext)
@@ -30,6 +30,7 @@ const Main = () => {
   const addCount = () => setCount(count + 1)
 
   useEffect(() => {
+    if (!id) return
     const starCountRef = ref(database, `quiz/${id}`)
 
     onValue(starCountRef, async (snapshot) => {
@@ -39,70 +40,19 @@ const Main = () => {
         if (!data) {
           throw new Error('Quiz não encontrado.')
         }
+
         const { quizItems, id } = data
-        const cache = JSON.parse(
-          window.localStorage.getItem('imageCache') || `{}`
-        )
-        let cardUrl = ''
 
-        if (cache[`${id}_cover`]) {
-          cardUrl = cache[`${id}_cover`]
-        } else {
-          const cardRef = await storageRef(
-            storage,
-            `gs://${import.meta.env.VITE_STORAGE_BUCKET}/cover/${id}_cover`
-          )
-          cardUrl = await getDownloadURL(cardRef)
-
-          cache[`${id}_cover`] = cardUrl
-        }
-
-        const mappedQuiz = await quizItems?.map(
-          async ({ name, variations, audioId, imageId }) => {
-            let imageUrl = ''
-            let audioUrl = ''
-
-            if (cache[imageId]) {
-              imageUrl = cache[imageId]
-            } else {
-              const imageRef = await storageRef(
-                storage,
-                `gs://${import.meta.env.VITE_STORAGE_BUCKET}/${imageId}`
-              )
-              imageUrl = await getDownloadURL(imageRef)
-
-              cache[imageId] = imageUrl
-            }
-
-            if (cache[audioId]) {
-              audioUrl = cache[audioId]
-            } else {
-              const audioRef = await storageRef(
-                storage,
-                `gs://${import.meta.env.VITE_STORAGE_BUCKET}/${audioId}`
-              )
-              audioUrl = await getDownloadURL(audioRef)
-
-              cache[audioId] = audioUrl
-            }
-
-            window.localStorage.setItem('imageCache', JSON.stringify(cache))
-
-            return {
-              name,
-              variations,
-              imageUrl,
-              audioUrl,
-            }
-          }
-        )
-
-        const resolvedQuizPromise = await Promise.all(mappedQuiz).then((e) => e)
+        const cardUrl = assetsUrl(`cover/${id}_cover`)
 
         setQuiz({
           ...data,
           cardBackground: cardUrl,
-          quizItems: resolvedQuizPromise,
+          quizItems: quizItems?.map(({ audioId, imageId, ...rest }) => ({
+            ...rest,
+            imageUrl: assetsUrl(`${imageId}`),
+            audioUrl: assetsUrl(`${audioId}`),
+          })),
         })
       } catch (error) {
         console.error(error)
