@@ -1,9 +1,9 @@
-import styled from "styled-components"
+import styled from 'styled-components'
 
 export const Item = styled.div<{ correct: boolean }>`
   width: 160px;
   /* height: 250px; */
-  background-color: ${({ correct }) => correct ? "#559b54" : "#5a0595" };
+  background-color: ${({ correct }) => (correct ? '#559b54' : '#5a0595')};
 `
 
 export const TitleWrapper = styled.div`
@@ -43,6 +43,10 @@ export const Input = styled.input`
   border-radius: 2px;
   border: none;
   outline: none;
+
+  &:disabled {
+    color: white;
+  }
 `
 
 export const ProgressBar = styled.div`
@@ -68,3 +72,4 @@ export const Reveal = styled.button`
   right: 0;
   transform: translateY(-50%);
 `
+

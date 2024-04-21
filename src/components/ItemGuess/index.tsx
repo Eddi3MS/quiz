@@ -31,14 +31,15 @@ import './style.css'
 import { QuizContext } from '../context/QuizContext'
 
 const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
+  const { name, audioUrl, imageUrl, variations } = quizItem
   const { volume } = useContext(QuizContext)
   const audioRef = useRef(null)
   const [playing, setPlaying] = useState<boolean>(false)
   const [progress, setProgress] = useState<number>(0)
-  const [correct, setCorrect] = useState<boolean>(false)
   const [forfeit, setForfeit] = useState<boolean>(false)
+
   const [input, setInput] = useState<string>('')
-  const { name, audioUrl, imageUrl, variations } = quizItem
+  const [correct, setCorrect] = useState(false)
 
   const toggleAudio = () => {
     if (!audioRef.current) return
@@ -70,17 +71,6 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
 
     return setProgress(relativeProgress)
   }
-
-  useEffect(() => {
-    if (!variations.map((e) => e.toLowerCase()).includes(input.toLowerCase()))
-      return
-
-    setCorrect(true)
-  }, [input])
-
-  useEffect(() => {
-    if (correct) addCount()
-  }, [correct])
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume / 100
@@ -127,10 +117,19 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
       </ImageWrapper>
       <InputWrapper>
         <Input
-          disabled={forfeit}
+          disabled={forfeit || correct}
           value={forfeit ? variations.join(', ') : input}
           style={forfeit ? { backgroundColor: '#f23f3f', color: '#fff' } : {}}
-          onChange={({ target: { value } }) => setInput(value)}
+          onChange={({ target: { value } }) => {
+            if (
+              value &&
+              variations?.some((e) => e?.toLowerCase() === value?.toLowerCase())
+            ) {
+              addCount()
+              setCorrect(true)
+            }
+            setInput(value)
+          }}
           type="text"
         />
       </InputWrapper>
@@ -146,3 +145,4 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
   )
 }
 export default ItemGuess
+
