@@ -37,6 +37,7 @@ interface RangeType {
 
 interface InstanceType {
   index: number
+  id: string
 }
 
 const TextInput = ({ value, title, onChange, name }: InputType) => {
@@ -48,15 +49,16 @@ const TextInput = ({ value, title, onChange, name }: InputType) => {
   )
 }
 
-const NewInstance = ({ index }: InstanceType) => {
+const NewInstance = ({ index, id }: InstanceType) => {
   const {
     appendAudioBlob,
     appendImageBlob,
     setQuizInput,
     input,
     setLogger,
-    youtubeUrl,
-    setYTUrl,
+    toggleSubmitting,
+    isSubmitting,
+    removeField,
   } = useContext(CreationContext)
   const audioRef = useRef(null)
   const fileRef = useRef(null)
@@ -65,7 +67,7 @@ const NewInstance = ({ index }: InstanceType) => {
   const [playing, setPlaying] = useState<boolean>(false)
   const [duration, setDuration] = useState<number>(0)
   const [range, setRange] = useState<RangeType>({ min: 0, max: 30 })
-  const [errorLog, setError] = useState([])
+  const [errorLog, setError] = useState('')
 
   const handleImageUpload = async (e) => {
     e.preventDefault()
@@ -82,7 +84,7 @@ const NewInstance = ({ index }: InstanceType) => {
       const dataFetch = await fetch(imageString).then((res) => res.blob())
       const url = URL.createObjectURL(dataFetch)
 
-      appendImageBlob(dataFetch, index)
+      appendImageBlob(dataFetch, id)
       setImageLoad(true)
       imageFileRef.current.src = url
     }
@@ -91,9 +93,63 @@ const NewInstance = ({ index }: InstanceType) => {
   const sliceAndPlay = async (e) => {
     e.preventDefault()
 
+    audioRef.current.play()
+  }
+
+  const pauseInProgress = (e) => {
+    e.preventDefault()
+    audioRef.current.pause()
+  }
+
+  const handleTextInput = (e) => setQuizInput(e, id)
+
+  const storeBlob = async ({ min, max }: { min: number; max: number }) => {
+    if (max - min > 45) return
+
     const audioContext = new AudioContext()
     const arrayBuffer = await fileRef?.current.files[0].arrayBuffer()
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+    audioBufferSlice(
+      audioBuffer,
+      min * 1000,
+      max * 1000,
+      function (error, slicedAudioBuffer) {
+        if (error) {
+          console.error(error)
+        } else {
+          try {
+            const wav = toWav(slicedAudioBuffer)
+
+            const blob = new Blob([new DataView(wav)], {
+              type: 'audio/mpeg',
+            })
+
+            const url = URL.createObjectURL(blob)
+
+            audioRef.current.src = url
+
+            return appendAudioBlob(blob, id)
+          } catch (error) {
+            setLogger(JSON.stringify(error))
+          }
+        }
+      }
+    )
+  }
+
+  const handleAudioUpload = async (e) => {
+    e?.preventDefault()
+    const audioContext = new AudioContext()
+    const file = e ? e.target.files[0] : fileRef?.current.files[0]
+    const arrayBuffer = await file.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+    setDuration(audioBuffer.duration)
+    setRange({
+      min: 0,
+      max: 45,
+    })
 
     audioBufferSlice(
       audioBuffer,
@@ -111,100 +167,26 @@ const NewInstance = ({ index }: InstanceType) => {
             })
 
             const url = URL.createObjectURL(blob)
-
             audioRef.current.src = url
-            audioRef.current.play()
-          } catch (error) {
-            setLogger(JSON.stringify(error))
-          }
-        }
-      }
-    )
-  }
 
-  const pauseInProgress = (e) => {
-    e.preventDefault()
-    audioRef.current.pause()
-  }
-
-  const handleTextInput = (e) => setQuizInput(e, index)
-
-  const storeBlob = async () => {
-    const audioContext = new AudioContext()
-    const arrayBuffer = await fileRef?.current.files[0].arrayBuffer()
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-
-    audioBufferSlice(
-      audioBuffer,
-      range.min * 1000,
-      audioBuffer.duration * 1000,
-      function (error, slicedAudioBuffer) {
-        if (error) {
-          console.error(error)
-        } else {
-          try {
-            const wav = toWav(slicedAudioBuffer)
-
-            const blob = new Blob([new DataView(wav)], {
-              type: 'audio/mpeg',
-            })
-
-            return appendAudioBlob(blob, index)
-          } catch (error) {
-            setLogger(JSON.stringify(error))
-          }
-        }
-      }
-    )
-  }
-
-  const handleAudioUpload = async (e) => {
-    e?.preventDefault()
-    const audioContext = new AudioContext()
-    const file = e ? e.target.files[0] : fileRef?.current.files[0]
-    const arrayBuffer = await file.arrayBuffer()
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-
-    setDuration(audioBuffer.duration)
-
-    audioBufferSlice(
-      audioBuffer,
-      range.min * 1000,
-      audioBuffer.duration * 1000,
-      function (error, slicedAudioBuffer) {
-        if (error) {
-          console.error(error)
-        } else {
-          try {
-            const wav = toWav(slicedAudioBuffer)
-
-            const blob = new Blob([new DataView(wav)], {
-              type: 'audio/mpeg',
-            })
-
-            if (audioRef.current) {
-              audioRef.current.pause()
-              audioRef.current.currentTime = 0
+            fileRef.current = {
+              files: [blob],
             }
 
-            return appendAudioBlob(blob, index)
+            storeBlob({ min: 0, max: 45 })
           } catch (error) {
-            console.log(error)
+            console.error(error)
             setLogger(JSON.stringify(error))
           }
         }
       }
     )
   }
-
-  const handleYTInput = ({ target: { value } }) => setYTUrl(value)
 
   const handleYTSubmit = (e) => {
     e.preventDefault()
-
-    const redoClone = [...errorLog]
-    redoClone[index] = ''
-    setError(redoClone)
+    toggleSubmitting()
+    setError('')
 
     axios
       .post(
@@ -214,29 +196,27 @@ const NewInstance = ({ index }: InstanceType) => {
           responseType: 'blob',
         }
       )
-      .catch((err) => console.log(err))
+      .catch((err) => console.error(err))
       .then(async (response) => {
-        console.log('🚀 ~ .then ~ response:', response)
-        const data = new Blob([response?.data])
-        console.log(response)
-
         if (response?.headers?.['content-type'] === 'application/json') {
           const textData = JSON.parse(await data.text())
 
           if (textData?.status === 400) {
-            const errorClone = [...errorLog]
-            errorClone[index] = textData?.error
-            setError(errorClone)
+            setError(textData?.error)
 
-            throw 'error'
+            throw new Error('Erro ao fazer conversão do video')
           }
         }
+
+        const data = new Blob([response?.data])
 
         fileRef.current = {
           files: [data],
         }
       })
+
       .then(handleAudioUpload)
+      .then(() => toggleSubmitting())
   }
 
   const removeContent = async (e) => {
@@ -252,6 +232,7 @@ const NewInstance = ({ index }: InstanceType) => {
 
       audioRef.current.src = ''
       setDuration(0)
+      setRange({ min: 0, max: 45 })
     }, 500)
   }
 
@@ -332,6 +313,13 @@ const NewInstance = ({ index }: InstanceType) => {
             />
           </UploadArea>
 
+          <audio
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            style={{ position: 'absolute' }}
+            ref={audioRef}
+          />
+
           {!duration ? (
             <Flex
               style={{
@@ -342,7 +330,7 @@ const NewInstance = ({ index }: InstanceType) => {
               }}
             >
               <TextInput
-                value={input.quizItems[index].youtubeUrl}
+                value={input.quizItems[index].youtubeUrl || ''}
                 onChange={handleTextInput}
                 name="youtubeUrl"
                 title="Link do YouTube"
@@ -359,7 +347,10 @@ const NewInstance = ({ index }: InstanceType) => {
                     <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
                   </svg>
                 </SVGItem>
-                <Button onClick={handleYTSubmit}>
+                <Button
+                  onClick={!isSubmitting ? handleYTSubmit : undefined}
+                  disabled={isSubmitting}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     height="24px"
@@ -370,12 +361,13 @@ const NewInstance = ({ index }: InstanceType) => {
                   </svg>
                 </Button>
               </UploadArea>
-              <Label style={{ color: '#f00', fontSize: 12, width: 200 }}>
-                {errorLog[index]}
-              </Label>
+              {!!errorLog && (
+                <Label style={{ color: '#f00', fontSize: 12, width: 200 }}>
+                  {errorLog}
+                </Label>
+              )}
             </Flex>
-          ) : null}
-          {duration ? (
+          ) : (
             <>
               <Button
                 style={{ marginRight: 10 }}
@@ -387,21 +379,15 @@ const NewInstance = ({ index }: InstanceType) => {
                 }
               >
                 {playing ? <Pause /> : <Play />}
-                <audio
-                  onPlay={() => setPlaying(true)}
-                  onPause={() => setPlaying(false)}
-                  style={{ position: 'absolute' }}
-                  ref={audioRef}
-                  src=""
-                />
               </Button>
               <InputRange
                 value={range}
                 minValue={0}
                 formatLabel={(value) => `${timeFormat(value)}`}
                 maxValue={Math.floor(duration)}
-                onChangeComplete={storeBlob}
+                onChangeComplete={(value) => storeBlob(value)}
                 onChange={(value) => {
+                  if (value.max - value.min > 45) return
                   audioRef.current.pause()
                   setRange(value)
                 }}
@@ -412,6 +398,7 @@ const NewInstance = ({ index }: InstanceType) => {
                 height={55}
                 radius={7}
                 onClick={removeContent}
+                disabled={isSubmitting}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -424,17 +411,22 @@ const NewInstance = ({ index }: InstanceType) => {
                 </svg>
               </Button>
             </>
-          ) : null}
+          )}
         </Flex>
       </Container>
-      {/* <Button svgSize={20} width={48} height={48} onClick={(e) => {
-        e.preventDefault()
-        removeField(index)
-      }}>
+      <Button
+        svgSize={20}
+        width={48}
+        height={48}
+        onClick={(e) => {
+          e.preventDefault()
+          removeField(id)
+        }}
+      >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
           <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
         </svg>
-      </Button> */}
+      </Button>
     </Flex>
   )
 }

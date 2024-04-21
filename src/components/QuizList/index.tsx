@@ -19,45 +19,49 @@ const QuizList = () => {
     console.log(quizRef)
 
     onValue(quizRef, async (snapshot) => {
-      console.log('🚀 ~ onValue ~ snapshot:', snapshot)
-      const data = snapshot.val()
-      console.log('🚀 ~ onValue ~ data:', data)
+      try {
+        const data = snapshot.val()
 
-      const dataArray = Object.keys(data).map(async (key) => {
-        const cache = JSON.parse(
-          window.localStorage.getItem('imageCache') || `{}`
-        )
+        const dataArray = Object.keys(data).map(async (key) => {
+          const cache = JSON.parse(
+            window.localStorage.getItem('imageCache') || `{}`
+          )
 
-        if (cache[`${data[key].id}_cover`])
+          if (cache[`${data[key].id}_cover`])
+            return {
+              ...data[key],
+              cardBackground: cache[`${data[key].id}_cover`],
+            }
+
+          const cardRef = storageRef(
+            storage,
+            `gs://${import.meta.env.VITE_STORAGE_BUCKET}/cover/${
+              data[key].id
+            }_cover`
+          )
+          const cardUrl = await getDownloadURL(cardRef)
+
+          cache[`${data[key].id}_cover`] = cardUrl
+          window.localStorage.setItem('imageCache', JSON.stringify(cache))
+
           return {
             ...data[key],
-            cardBackground: cache[`${data[key].id}_cover`],
+            cardBackground: cardUrl,
           }
+        })
 
-        const cardRef = storageRef(
-          storage,
-          `gs://${import.meta.env.VITE_STORAGE_BUCKET}/cover/${
-            data[key].id
-          }_cover`
+        const list = await Promise.all(dataArray)
+
+        setQuizList(
+          list.sort(
+            ({ createdAt: a }, { createdAt: b }) => (b || 20) - (a || 20)
+          )
         )
-        const cardUrl = await getDownloadURL(cardRef)
-
-        cache[`${data[key].id}_cover`] = cardUrl
-        window.localStorage.setItem('imageCache', JSON.stringify(cache))
-
-        return {
-          ...data[key],
-          cardBackground: cardUrl,
-        }
-      })
-
-      const list = await Promise.all(dataArray)
-      setLoading(false)
-
-      setQuizList(
-        list.sort(({ createdAt: a }, { createdAt: b }) => (b || 20) - (a || 20))
-      )
-      return
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
     })
   }, [])
   console.log(quizList)

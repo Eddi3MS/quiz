@@ -7,6 +7,7 @@ import { CreationContext } from '../context/CreationContext'
 import NewInstance from '../NewInstance'
 import { ImageSelected } from '../NewInstance/styles'
 import imagejs from 'image-js'
+import { v4 as uuidv4 } from 'uuid'
 
 import {
   Main,
@@ -66,7 +67,7 @@ const requiredFields = [
   },
   {
     field: 'mainImage',
-    type: 'blob',
+    type: 'object',
   },
 ]
 
@@ -83,11 +84,11 @@ const requiredQuiz = [
   },
   {
     field: 'audioBlob',
-    type: 'blob',
+    type: 'object',
   },
   {
     field: 'imageBlob',
-    type: 'blob',
+    type: 'object',
   },
 ]
 
@@ -100,35 +101,49 @@ const MainCreate = () => {
     uploadProgress,
     setLogger,
     logger,
+    isSubmitting,
   } = useContext(CreationContext)
   const imageFileRef = useRef(null)
   const [imageLoaded, setImageLoad] = useState<boolean>(false)
 
   const addInstance = () => {
-    setInput({
-      ...input,
+    const _id = uuidv4()
+
+    setInput((curr) => ({
+      ...curr,
       quizItems: [
-        ...input.quizItems,
+        ...curr.quizItems,
         {
+          _id,
           ytProgress: 0,
+          youtubeUrl: '',
           cardTitle: '',
           variations: '',
           audioBlob: null,
           imageBlob: null,
         },
       ],
-    })
+    }))
   }
 
+  const handleCheck = ({ target: { checked, name } }) =>
+    setInput((curr) => ({ ...curr, [name]: checked }))
+
   const handleTextInput = ({ target: { name, value } }) =>
-    setInput({ ...input, [name]: value })
+    setInput((curr) => ({ ...curr, [name]: value }))
 
   const submitQuiz = (e) => {
     e.preventDefault()
 
     const validMain = requiredFields.every(
       ({ field, minLength, type }, index) => {
-        if (!input[field]) {
+        const currentField = input?.[field]
+
+        if (
+          !currentField ||
+          (minLength && currentField.length < minLength) ||
+          typeof currentField !== type
+        ) {
           setLogger(`[${index + 1}] Campo "${field}" não preenchido`)
           return false
         }
@@ -138,13 +153,20 @@ const MainCreate = () => {
     )
 
     const validQuiz =
-      !!input.quizItems.length &&
+      Array.isArray(input.quizItems) &&
+      input.quizItems.length > 0 &&
       input.quizItems.every((item) => {
         if (!item) return false
 
         const validItem = requiredQuiz.every(
           ({ field, minLength, type }, index) => {
-            if (!item[field]) {
+            const currentField = item?.[field]
+
+            if (
+              !currentField ||
+              (minLength && currentField.length < minLength) ||
+              typeof currentField !== type
+            ) {
               setLogger(`[${index + 1}] Campo "${field}" não preenchido`)
               return false
             }
@@ -182,9 +204,6 @@ const MainCreate = () => {
       imageFileRef.current.src = url
     }
   }
-
-  const handleCheck = ({ target: { checked, name } }) =>
-    setInput({ ...input, [name]: checked })
 
   return (
     <Main>
@@ -240,17 +259,21 @@ const MainCreate = () => {
           </Container>
         </Flex>
         <Label style={{ marginTop: 50 }}>Lista de Musicas</Label>
-        {input.quizItems.map((_, index) => (
-          <NewInstance index={index} key={index} />
-        ))}
-        <UploadArea onClick={addInstance} large={true}>
+        {input.quizItems.map((item, index) => {
+          return <NewInstance index={index} key={index} id={item._id} />
+        })}
+        <UploadArea
+          onClick={!isSubmitting ? addInstance : undefined}
+          large={true}
+          disabled={isSubmitting}
+        >
           <SVGItem viewBox="0 0 24 24">
             <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
           </SVGItem>
         </UploadArea>
       </Form>
       {logger ? <Error>{logger}</Error> : null}
-      <Submit onClick={submitQuiz} type="submit">
+      <Submit onClick={submitQuiz} type="submit" disabled={isSubmitting}>
         Enviar Quiz
         <ProgressBar barWidth={(uploadProgress[0] / uploadProgress[1]) * 100} />
       </Submit>
@@ -259,3 +282,4 @@ const MainCreate = () => {
 }
 
 export default MainCreate
+

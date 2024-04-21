@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import { v4 as uuidv4 } from 'uuid'
-import { createContext, useState, Dispatch } from 'react'
+import { createContext, useState, Dispatch, useCallback } from 'react'
 import { ref, uploadBytes } from 'firebase/storage'
 
 import { ref as dbRef, set } from 'firebase/database'
@@ -66,98 +66,108 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
     mainImage: null as null | Blob,
     quizItems: [],
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const setMainImage = (blob: Blob) => setInput({ ...input, mainImage: blob })
+  const toggleSubmitting = useCallback(() => {
+    setIsSubmitting((curr) => !curr)
+  }, [])
 
-  const appendImageBlob = (blob: Blob, index: number) => {
-    const clone = [...input.quizItems]
-    clone[index].imageBlob = blob
+  const setMainImage = (blob: Blob) =>
+    setInput((curr) => ({ ...curr, mainImage: blob }))
 
-    return setInput({ ...input, quizItems: clone })
+  const appendImageBlob = (blob: Blob, id: string) => {
+    setInput((curr) => ({
+      ...curr,
+      quizItems: curr.quizItems.map((item) =>
+        item._id === id ? { ...item, imageBlob: blob } : item
+      ),
+    }))
   }
 
-  const appendAudioBlob = (blob: Blob, index: number) => {
-    const clone = [...input.quizItems]
-    clone[index].audioBlob = blob
-
-    return setInput({ ...input, quizItems: clone })
+  const appendAudioBlob = (blob: Blob, id: string) => {
+    setInput((curr) => ({
+      ...curr,
+      quizItems: curr.quizItems.map((item) =>
+        item._id === id ? { ...item, audioBlob: blob } : item
+      ),
+    }))
   }
 
-  const setQuizInput = ({ target: { name, value } }, index: number) => {
-    const currentQuiz = [...input.quizItems]
-
-    currentQuiz[index] = { ...currentQuiz[index] }
-    currentQuiz[index][name] = value
-
-    setInput({ ...input, quizItems: currentQuiz })
+  const setQuizInput = ({ target: { name, value } }, id: string) => {
+    setInput((curr) => ({
+      ...curr,
+      quizItems: curr.quizItems.map((item) =>
+        item._id === id ? { ...item, [name]: value } : item
+      ),
+    }))
   }
 
-  const removeField = (index: number) => {
-    const inputClone = [...input.quizItems]
-    const filterQuiz = inputClone.filter((_, ind) => index !== ind)
-
-    setInput({ ...input, quizItems: filterQuiz })
-    // setMusicList(filterMusic)
+  const removeField = (id: string) => {
+    setInput((curr) => ({
+      ...curr,
+      quizItems: curr.quizItems.filter((item) => item._id !== id),
+    }))
   }
 
   const addProgress = (prog: number, max: number) => setUpload([prog, max])
 
   const createInstance = async () => {
-    let prog = 0
-    const max = 2 + input.quizItems.length * 2
-
-    const storageRef = ref(storage, `cover/${uuid}_cover`)
-
-    await uploadBytes(storageRef, input.mainImage)
-    ++prog
-    addProgress(prog, max)
-
-    const mediaStorePromise = input.quizItems.map(
-      async ({ imageBlob, audioBlob }, index) => {
-        const imageRef = ref(storage, `cards/${uuid}_${index}`)
-        const audioRef = ref(storage, `audio/${uuid}_${index}`)
-
-        const storedImage = await uploadBytes(imageRef, imageBlob)
-        ++prog
-        addProgress(prog, max)
-        const storedAudio = await uploadBytes(audioRef, audioBlob)
-        ++prog
-        addProgress(prog, max)
-
-        return [storedImage, storedAudio]
-      }
-    )
-
-    await set(dbRef(database, `quiz/${uuid}`), {
-      id: uuid,
-      quizName: input.quizName,
-      quizDescription: input.quizDescription,
-      author: input.author,
-      authorHandle: input.authorHandle,
-      dmcaNotice: input.dmcaNotice,
-      createdAt: +new Date(),
-      quizItems: input.quizItems.map(
-        ({ cardTitle, variations, youtubeUrl }, index) => ({
-          name: cardTitle,
-          youtubeUrl,
-          variations: variations.split(',').map((x: string) => x.trim()),
-          audioId: `audio/${uuid}_${index}`,
-          imageId: `cards/${uuid}_${index}`,
-        })
-      ),
-    })
+    setIsSubmitting(true)
 
     try {
-      const promise = await Promise.all(mediaStorePromise).then(() => {
+      let prog = 0
+      const max = 2 + input.quizItems.length * 2
+
+      const storageRef = ref(storage, `cover/${uuid}_cover`)
+
+      await uploadBytes(storageRef, input.mainImage)
+      ++prog
+      addProgress(prog, max)
+
+      const mediaStorePromise = input.quizItems.map(
+        async ({ imageBlob, audioBlob }, index) => {
+          const imageRef = ref(storage, `cards/${uuid}_${index}`)
+          const audioRef = ref(storage, `audio/${uuid}_${index}`)
+
+          const storedImage = await uploadBytes(imageRef, imageBlob)
+          ++prog
+          addProgress(prog, max)
+          const storedAudio = await uploadBytes(audioRef, audioBlob)
+          ++prog
+          addProgress(prog, max)
+
+          return [storedImage, storedAudio]
+        }
+      )
+      await Promise.all(mediaStorePromise).then(() => {
         ++prog
         addProgress(prog, max)
-
-        setTimeout(() => navigate(`/quiz/${uuid}`), 2000)
       })
 
-      console.log(promise)
+      await set(dbRef(database, `quiz/${uuid}`), {
+        id: uuid,
+        quizName: input.quizName,
+        quizDescription: input.quizDescription,
+        author: input.author,
+        authorHandle: input.authorHandle,
+        dmcaNotice: input.dmcaNotice,
+        createdAt: +new Date(),
+        quizItems: input.quizItems.map(
+          ({ cardTitle, variations, youtubeUrl }, index) => ({
+            name: cardTitle,
+            youtubeUrl,
+            variations: variations.split(',').map((x: string) => x.trim()),
+            audioId: `audio/${uuid}_${index}`,
+            imageId: `cards/${uuid}_${index}`,
+          })
+        ),
+      })
+
+      setTimeout(() => navigate(`/quiz/${uuid}`), 2000)
     } catch (error) {
       setLogger(error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -166,6 +176,8 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
       value={{
         appendImageBlob,
         appendAudioBlob,
+        isSubmitting,
+        toggleSubmitting,
         input,
         setInput,
         setQuizInput,

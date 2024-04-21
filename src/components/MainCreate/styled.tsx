@@ -1,4 +1,4 @@
-import styled from "styled-components"
+import styled, { css } from 'styled-components'
 
 export const Main = styled.main`
   padding: 0 50px;
@@ -11,9 +11,7 @@ export const PageTitle = styled.h1`
   font-size: 42px;
 `
 
-export const Form = styled.form`
-
-`
+export const Form = styled.form``
 
 export const Container = styled.div`
   width: 100%;
@@ -25,34 +23,37 @@ export const InputField = styled.div<{ type?: string }>`
   margin-bottom: 24px;
   width: 100%;
 
-  ${({ type }) => type === "checkbox" ? `
-    align-items: center;
-    flex-direction: row;
+  ${({ type }) =>
+    type === 'checkbox'
+      ? css`
+          align-items: center;
+          flex-direction: row;
 
-    label{
-      margin: 0px;
-      display: flex;
-      align-items: center;
-    }
+          label {
+            margin: 0px;
+            display: flex;
+            align-items: center;
+          }
 
-    input{
-      display: none;
-    }
+          input {
+            display: none;
+          }
 
-    svg{
-      width: 40px;
-      height: 40px;
-      margin-left: 12px;
+          svg {
+            width: 40px;
+            height: 40px;
+            margin-left: 12px;
 
-      path{
-        fill: #fff;
-      }
-    }
-  ` : ''}
+            path {
+              fill: #fff;
+            }
+          }
+        `
+      : ''}
 `
 
 export const Label = styled.label`
-  color: #ebebeb; 
+  color: #ebebeb;
   font-size: 18px;
   margin-bottom: 8px;
   display: block;
@@ -68,7 +69,7 @@ export const Input = styled.input`
   border-radius: 4px;
   transition: 0.3s ease;
 
-  &[type="file"]{
+  &[type='file'] {
     position: absolute;
     top: 0;
     left: 0;
@@ -79,17 +80,20 @@ export const Input = styled.input`
     opacity: 0;
   }
 
-  &:focus{
+  &:focus {
     border: 1px solid #333;
   }
 `
 
-export const UploadArea = styled.div<{ large?: boolean, width?: number, height?: number, radius?: number }>`
+export const UploadArea = styled.div<{
+  large?: boolean
+  width?: number
+  height?: number
+  radius?: number
+  disabled?: boolean
+}>`
   position: relative;
-  width: ${({width}) => width ? `${width}px` : `170px`};
-  height: ${({height}) => height ? `${height}px` : `220px`};
   border: 1px dotted #ffffff;
-  border-radius: ${({radius}) => radius ? `${radius}px` : `30px`};;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -97,25 +101,28 @@ export const UploadArea = styled.div<{ large?: boolean, width?: number, height?:
   background-color: #55556e;
   transition: 0.2s ease;
 
-  &:hover{
+  &:hover {
     background-color: #4f4f66;
   }
 
-  ${({ large }) => large ? `
-    width: 100%;
-    height: 150px;
-    cursor: pointer;
-  ` : ''}
+  ${({ disabled, large, width, height, radius }) => css`
+    opacity: ${disabled ? '.5' : 1};
+    cursor: ${disabled ? 'not-allowed' : large ? 'pointer' : 'default'};
+    pointer-events: ${disabled ? 'none' : 'default'};
+    width: ${large ? '100%' : width ? `${width}px` : `170px`};
+    height: ${large ? '150px' : height ? `${height}px` : `220px`};
+    border-radius: ${radius ? `${radius}px` : `30px`};
+  `}
 `
 
-export const SVGItem = styled.svg<{ width?: number, height?: number }>`
-  width: ${({width}) => width ? `${width}px` : `80px`};
-  height: ${({height}) => height ? `${height}px` : `80px`};
+export const SVGItem = styled.svg<{ width?: number; height?: number }>`
+  width: ${({ width }) => (width ? `${width}px` : `80px`)};
+  height: ${({ height }) => (height ? `${height}px` : `80px`)};
   display: flex;
   align-items: center;
   justify-content: center;
 
-  path{
+  path {
     fill: #ebebeb;
   }
 `
@@ -124,7 +131,6 @@ export const Flex = styled.div`
   display: flex;
   gap: 80px;
 `
-
 
 export const Submit = styled.button`
   width: 100%;
@@ -140,9 +146,14 @@ export const Submit = styled.button`
   position: relative;
   overflow: hidden;
 
-  &:hover{
+  &:hover {
     color: #55556e;
     background-color: #fff;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
   }
 `
 

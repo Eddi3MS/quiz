@@ -1,4 +1,4 @@
-import styled from "styled-components"
+import styled, { css } from 'styled-components'
 
 export const InstanceContainer = styled.div`
   display: flex;
@@ -6,27 +6,41 @@ export const InstanceContainer = styled.div`
   margin-bottom: 24px;
 `
 
-export const Button = styled.button<{ width?: number, height?: number, radius?: number, svgSize?: number }>`
+export const Button = styled.button<{
+  width?: number
+  height?: number
+  radius?: number
+  svgSize?: number
+}>`
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: ${({width}) => width ? `${width}px` : `70px`};
-  min-height: ${({height}) => height ? `${height}px` : `70px`};
-  max-width: ${({width}) => width ? `${width}px` : `70px`};
-  max-height: ${({height}) => height ? `${height}px` : `70px`};
+  ${({ width, height, radius, svgSize }) => css`
+    min-width: ${width ? `${width}px` : `70px`};
+    min-height: ${height ? `${height}px` : `70px`};
+    max-width: ${width ? `${width}px` : `70px`};
+    max-height: ${height ? `${height}px` : `70px`};
+    border-radius: ${radius ? `${radius}px` : `10px`};
+
+    svg {
+      width: ${svgSize ? `${svgSize}px` : `32px`};
+      height: ${svgSize ? `${svgSize}px` : `32px`};
+
+      path {
+        fill: #fff;
+      }
+    }
+  `}
+
   background: none;
   cursor: pointer;
   border: 1px solid #ffffff;
-  border-radius: ${({radius}) => radius ? `${radius}px` : `10px`};
 
-  svg{
-    width: ${({svgSize}) => svgSize ? `${svgSize}px` : `32px`};
-    height: ${({svgSize}) => svgSize ? `${svgSize}px` : `32px`};
-
-    path{
-      fill: #fff;
-    }
+  &:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.5;
   }
 `
 
@@ -40,3 +54,4 @@ export const ImageSelected = styled.img`
   object-fit: cover;
   object-position: center;
 `
+
