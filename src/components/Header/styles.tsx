@@ -9,7 +9,6 @@ export const MainHeader = styled.header`
   align-items: center;
   justify-content: flex-end;
   border-bottom: 1px solid #48485e;
-  margin-bottom: 50px;
 `
 
 export const Anchor = styled(Link)`

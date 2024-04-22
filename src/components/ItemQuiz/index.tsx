@@ -32,7 +32,6 @@ const ItemQuiz = ({ quiz }) => {
     quizDescription,
     quizName,
   } = quiz
-  console.log('🚀 ~ ItemQuiz ~ authorHandle:', authorHandle)
 
   const twUser = authorHandle.startsWith('@')
     ? authorHandle.slice(1)

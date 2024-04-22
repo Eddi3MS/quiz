@@ -19,6 +19,14 @@ import {
 } from './styles'
 import { assetsUrl } from '../../utils/assetsUrl'
 
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
+}
+
 const Main = () => {
   const { setVolume, volume } = useContext(QuizContext)
   const { id } = useParams()
@@ -45,14 +53,18 @@ const Main = () => {
 
         const cardUrl = assetsUrl(`cover/${id}_cover`)
 
+        const formatted = quizItems?.map(({ audioId, imageId, ...rest }) => ({
+          ...rest,
+          imageUrl: assetsUrl(`${imageId}`),
+          audioUrl: assetsUrl(`${audioId}`),
+        }))
+
+        const shuffled = shuffleArray(formatted)
+
         setQuiz({
           ...data,
           cardBackground: cardUrl,
-          quizItems: quizItems?.map(({ audioId, imageId, ...rest }) => ({
-            ...rest,
-            imageUrl: assetsUrl(`${imageId}`),
-            audioUrl: assetsUrl(`${audioId}`),
-          })),
+          quizItems: shuffled,
         })
       } catch (error) {
         console.error(error)

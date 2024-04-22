@@ -1,7 +1,9 @@
-import styled from "styled-components"
+import styled from 'styled-components'
 
 export const MainWrapper = styled.main`
-  padding: 0 50px;
+  padding: 40px;
+  max-width: 1280px;
+  margin-inline: auto;
 `
 
 export const Grid = styled.div`
@@ -11,3 +13,4 @@ export const Grid = styled.div`
   flex-wrap: wrap;
   justify-content: center;
 `
+

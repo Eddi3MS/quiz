@@ -26,17 +26,21 @@ export const Title = styled.h2`
   color: #212121;
   font-weight: 500;
   margin: 0px 0px 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 
   svg {
-    width: 28px;
-    height: 28px;
-    margin-left: 12px;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    right: 0;
 
     path {
-      fill: #a50e4f;
+      fill: red;
     }
   }
 `
@@ -57,5 +61,10 @@ export const Description = styled.p`
   margin: 8px 0;
   font-size: 16px;
   color: #212121;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `
 
