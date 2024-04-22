@@ -49,6 +49,8 @@ const TextInput = ({ value, title, onChange, name }: InputType) => {
   )
 }
 
+const timeLimit = import.meta.env.VITE_UPLOAD_MAX || 45
+
 const NewInstance = ({ index, id }: InstanceType) => {
   const {
     appendAudioBlob,
@@ -104,7 +106,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
   const handleTextInput = (e) => setQuizInput(e, id)
 
   const storeBlob = async ({ min, max }: { min: number; max: number }) => {
-    if (max - min > 45) return
+    if (max - min > timeLimit) return
 
     const audioContext = new AudioContext()
     const arrayBuffer = await fileRef?.current.files[0].arrayBuffer()
@@ -148,7 +150,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
     setDuration(audioBuffer.duration)
     setRange({
       min: 0,
-      max: 45,
+      max: timeLimit,
     })
 
     audioBufferSlice(
@@ -173,7 +175,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
               files: [blob],
             }
 
-            storeBlob({ min: 0, max: 45 })
+            storeBlob({ min: 0, max: timeLimit })
           } catch (error) {
             console.error(error)
             setLogger(JSON.stringify(error))
@@ -232,7 +234,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
 
       audioRef.current.src = ''
       setDuration(0)
-      setRange({ min: 0, max: 45 })
+      setRange({ min: 0, max: timeLimit })
     }, 500)
   }
 
@@ -387,7 +389,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
                 maxValue={Math.floor(duration)}
                 onChangeComplete={(value) => storeBlob(value)}
                 onChange={(value) => {
-                  if (value.max - value.min > 45) return
+                  if (value.max - value.min > timeLimit) return
                   audioRef.current.pause()
                   setRange(value)
                 }}
