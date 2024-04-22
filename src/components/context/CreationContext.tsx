@@ -1,12 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-import { v4 as uuidv4 } from 'uuid'
-import { createContext, useState, Dispatch, useCallback } from 'react'
-import { ref, uploadBytes } from 'firebase/storage'
-
 import { ref as dbRef, set } from 'firebase/database'
+import { ref, uploadBytes } from 'firebase/storage'
+import { Dispatch, createContext, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { v4 as uuidv4 } from 'uuid'
 
 import { database, storage } from '../../config/firebase'
 
@@ -46,8 +45,6 @@ interface CreationTypes {
   createInstance: () => void
   uploadProgress: number[]
 }
-
-const uuid = uuidv4()
 
 export const CreationContext = createContext<CreationTypes>({} as CreationTypes)
 
@@ -114,6 +111,8 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
   const createInstance = async () => {
     setIsSubmitting(true)
 
+    const uuid = uuidv4()
+
     try {
       let prog = 0
       const max = 2 + input.quizItems.length * 2
@@ -139,6 +138,7 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
           return [storedImage, storedAudio]
         }
       )
+
       await Promise.all(mediaStorePromise).then(() => {
         ++prog
         addProgress(prog, max)

@@ -1,4 +1,4 @@
-import styled from "styled-components"
+import styled from 'styled-components'
 
 export const Main = styled.main`
   padding: 0 50px;
@@ -26,12 +26,14 @@ export const Title = styled.p`
   font-size: 18px;
   color: #fff;
   text-align: center;
+  word-break: break-all;
 `
 
 export const Description = styled.p`
   font-size: 16px;
   color: #fff;
   text-align: center;
+  word-break: break-all;
 `
 
 export const InputRange = styled.input`
@@ -42,3 +44,4 @@ export const InputRange = styled.input`
   bottom: 150px;
   color: rgb(90, 5, 149);
 `
+
