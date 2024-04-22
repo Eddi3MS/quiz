@@ -237,6 +237,7 @@ const MainCreate = () => {
                 onChange={handleImageUpload}
                 accept="image/png, image/jpeg"
                 type="file"
+                disabled={isSubmitting}
               />
             </UploadArea>
           </InputField>

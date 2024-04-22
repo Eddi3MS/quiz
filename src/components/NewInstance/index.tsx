@@ -303,13 +303,21 @@ const NewInstance = ({ index, id }: InstanceType) => {
         />
         <Label>Seleção de Musica</Label>
 
-        <Flex style={{ gap: 14, alignItems: 'center', marginTop: 24 }}>
+        <Flex
+          style={{
+            gap: 14,
+            alignItems: 'center',
+            marginTop: 24,
+            position: 'relative',
+          }}
+        >
           {!duration && (
             <UploadArea
               style={{ minWidth: 55 }}
               width={55}
               height={55}
               radius={7}
+              htmlFor={`file-ref-${id}`}
             >
               <SVGItem width={20} height={20} viewBox="0 0 24 24">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -326,6 +334,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
             accept=".mp3,.wav,.mpeg"
             type="file"
             disabled={isSubmitting}
+            id={`file-ref-${id}`}
           />
 
           {/* audio play */}

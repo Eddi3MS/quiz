@@ -72,10 +72,9 @@ export const Input = styled.input`
   &[type='file'] {
     position: absolute;
     top: 0;
-    left: 0;
     z-index: 10;
-    width: 100%;
-    height: 100%;
+    width: 0;
+    height: 0;
     cursor: pointer;
     opacity: 0;
   }
@@ -90,7 +89,7 @@ export const Input = styled.input`
   }
 `
 
-export const UploadArea = styled.div<{
+export const UploadArea = styled.label<{
   large?: boolean
   width?: number
   height?: number
