@@ -148,9 +148,13 @@ const NewInstance = ({ index, id }: InstanceType) => {
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
     setDuration(audioBuffer.duration)
+
+    const maxTime =
+      audioBuffer.duration > timeLimit ? timeLimit : audioBuffer.duration
+
     setRange({
       min: 0,
-      max: timeLimit,
+      max: maxTime,
     })
 
     audioBufferSlice(
@@ -175,7 +179,10 @@ const NewInstance = ({ index, id }: InstanceType) => {
               files: [blob],
             }
 
-            storeBlob({ min: 0, max: timeLimit })
+            storeBlob({
+              min: 0,
+              max: maxTime,
+            })
           } catch (error) {
             console.error(error)
             setLogger(JSON.stringify(error))
@@ -277,6 +284,7 @@ const NewInstance = ({ index, id }: InstanceType) => {
             onChange={handleImageUpload}
             accept="image/png, image/jpeg,image/webp"
             type="file"
+            disabled={isSubmitting}
           />
         </UploadArea>
       </InstanceContainer>
@@ -296,25 +304,31 @@ const NewInstance = ({ index, id }: InstanceType) => {
         <Label>Seleção de Musica</Label>
 
         <Flex style={{ gap: 14, alignItems: 'center', marginTop: 24 }}>
-          <UploadArea
-            style={{ minWidth: 55 }}
-            width={55}
-            height={55}
-            radius={7}
-          >
-            <SVGItem width={20} height={20} viewBox="0 0 24 24">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
-              </svg>
-            </SVGItem>
-            <Input
-              ref={fileRef}
-              onChange={handleAudioUpload}
-              accept=".mp3,.wav,.mpeg"
-              type="file"
-            />
-          </UploadArea>
+          {!duration && (
+            <UploadArea
+              style={{ minWidth: 55 }}
+              width={55}
+              height={55}
+              radius={7}
+            >
+              <SVGItem width={20} height={20} viewBox="0 0 24 24">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
+                </svg>
+              </SVGItem>
+            </UploadArea>
+          )}
 
+          {/* file upload */}
+          <Input
+            ref={fileRef}
+            onChange={handleAudioUpload}
+            accept=".mp3,.wav,.mpeg"
+            type="file"
+            disabled={isSubmitting}
+          />
+
+          {/* audio play */}
           <audio
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}

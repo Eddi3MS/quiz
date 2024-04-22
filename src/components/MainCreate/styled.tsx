@@ -83,6 +83,11 @@ export const Input = styled.input`
   &:focus {
     border: 1px solid #333;
   }
+
+  &:disabled {
+    pointer-events: none;
+    cursor: not-allowed;
+  }
 `
 
 export const UploadArea = styled.div<{
