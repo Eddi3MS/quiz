@@ -19,14 +19,6 @@ import {
 } from './styles'
 import { assetsUrl } from '../../utils/assetsUrl'
 
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[array[i], array[j]] = [array[j], array[i]]
-  }
-  return array
-}
-
 const Main = () => {
   const { setVolume, volume } = useContext(QuizContext)
   const { id } = useParams()
@@ -59,12 +51,10 @@ const Main = () => {
           audioUrl: assetsUrl(`${audioId}`),
         }))
 
-        const shuffled = shuffleArray(formatted)
-
         setQuiz({
           ...data,
           cardBackground: cardUrl,
-          quizItems: shuffled,
+          quizItems: formatted,
         })
       } catch (error) {
         console.error(error)
