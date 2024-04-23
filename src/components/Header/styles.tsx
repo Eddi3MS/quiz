@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import { Link } from 'react-router-dom'
 
 export const MainHeader = styled.header`
   width: 100%;
@@ -11,7 +10,7 @@ export const MainHeader = styled.header`
   border-bottom: 1px solid #48485e;
 `
 
-export const Anchor = styled(Link)`
+export const Anchor = styled.a`
   font-size: 16px;
   color: #fff;
   text-decoration: none;
